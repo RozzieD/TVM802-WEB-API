@@ -3,15 +3,17 @@ var net = require('net');
 
 var settings = {
 	tvmPort 			: 701,
-//	tvmIP				: '192.168.0.8',
-	tvmIP				: '127.0.0.1',		// Emulator
+	tvmIP				: '192.168.0.8',
+//	tvmIP				: '127.0.0.1',		// Emulator
 	delayBeforePolling 	: 1000,
 	pollingInterval		: 15
 	
 }
 
 var commands = {
-	
+	poll 		: new Buffer([0x01, 0x00, 0x00, 0x00, 0xf4, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]),	
+	BeeperOn 	: [0x14, 0x00, 0x00, 0x00, 0x0, 0x8, 0x00, 0x00],
+	BeeperOff	: [0x15, 0x00, 0x00, 0x00, 0x0, 0x8, 0x00, 0x00]
 }
 
 // ####################### TVM Connection #######################
@@ -43,7 +45,7 @@ var commands = {
 // ####################### TVM Main functions #######################
 	function poll(){
 		console.log("Sending Poll.");	
-		tvmClient.write("ssadfsf");
+		tvmClient.write(commands.poll);
 	}
 	
 	function processMessage(msg){
