@@ -4,8 +4,6 @@ var tvmManager = require("./TVM-manager");
 
 var config = {
 	wwwPort : 80,
-	tvmPort : 701,
-	tvmIP	: '192.168.0.8'
 };
 
 
@@ -17,14 +15,17 @@ var state = {
 
 
 // TVM802 Connection
-	var tvmClient = new net.Socket();
+	//var tvmClient = new net.Socket();
+
+/*	
 	tvmClient.on('connect', function(data) {
 		console.log('TVM connected.');
 	});
+
 	
 	tvmClient.on('close', function() {
 		console.log('TVM connection closed.');
-		tvmManager.init();
+		tvmManager.init(tvmClient);
 	});
 
 	tvmClient.on('error', function (err) {
@@ -34,6 +35,9 @@ var state = {
 	tvmClient.on('data', function(data) {
 		console.log('Received: ' + data);
 	});
+*/
+
+	
 
 // ####################### Web Server #######################
 	var server = express();
@@ -70,9 +74,7 @@ var state = {
 				})
 			});
 			
-			tvmClient.connect(config.tvmPort,config.tvmIP, function() {
-				console.log('Connected');
-			});
+			tvmManager.init();			
 	}
 
 	main();	
