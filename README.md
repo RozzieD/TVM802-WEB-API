@@ -11,5 +11,8 @@ Download the code and run the following command to install the needed modules
 Running
 -------
 
-Start the app with:
 `node TVM-API-Server.js`
+
+Prerequisites
+-------------
+NodeJS - (https://nodejs.org/en/)
