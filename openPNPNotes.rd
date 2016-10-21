@@ -1,5 +1,5 @@
 
-[Driver Interface doco]
+Driver Interface doco
 (http://openpnp.github.io/openpnp/develop/org/openpnp/machine/reference/ReferenceDriver.html)
 
 [Example of openPNP driver for GRBL]
