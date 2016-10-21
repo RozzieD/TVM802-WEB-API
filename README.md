@@ -1,6 +1,10 @@
 # TVM802-WEB-API
 Web API to control a TVM802 Pick and place machine..
 
+Prerequisites
+-------------
+NodeJS - (https://nodejs.org/en/)
+
 Installation
 ------------
 
@@ -13,6 +17,3 @@ Running
 
 `node TVM-API-Server.js`
 
-Prerequisites
--------------
-NodeJS - (https://nodejs.org/en/)
