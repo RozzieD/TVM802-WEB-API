@@ -4,7 +4,7 @@ var net = require('net');
 var settings = {
 	tvmPort 			: 701,
 //	tvmIP				: '192.168.0.8',
-	tvmIP				: '127.0.0.1',
+	tvmIP				: '127.0.0.1',		// Emulator
 	delayBeforePolling 	: 1000,
 	pollingInterval		: 15
 	
@@ -43,6 +43,7 @@ var commands = {
 // ####################### TVM Main functions #######################
 	function poll(){
 		console.log("Sending Poll.");	
+		tvmClient.write("ssadfsf");
 	}
 	
 	function processMessage(msg){
@@ -57,6 +58,8 @@ var commands = {
 // ####################### TVM Exports #######################
 module.exports = {
 	init: function() {
-		tvmClient.connect(settings.tvmPort,settings.tvmIP, function() {});
+		tvmClient.connect(settings.tvmPort,settings.tvmIP, function() {
+			console.log('TVM connecting.');
+		});
 	}
 };    

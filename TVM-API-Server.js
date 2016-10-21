@@ -11,34 +11,6 @@ var state = {
 	"last_reply": "2016/01/01 00:00",
 };
 
-
-
-
-// TVM802 Connection
-	//var tvmClient = new net.Socket();
-
-/*	
-	tvmClient.on('connect', function(data) {
-		console.log('TVM connected.');
-	});
-
-	
-	tvmClient.on('close', function() {
-		console.log('TVM connection closed.');
-		tvmManager.init(tvmClient);
-	});
-
-	tvmClient.on('error', function (err) {
-		console.log("TVM Connection - " + err );
-	});
-
-	tvmClient.on('data', function(data) {
-		console.log('Received: ' + data);
-	});
-*/
-
-	
-
 // ####################### Web Server #######################
 	var server = express();
 	

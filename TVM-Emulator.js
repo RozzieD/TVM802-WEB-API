@@ -7,6 +7,9 @@ var server = net.createServer(function(socket) {
 	globalSocket.on('error', function (err) {
 		console.log("Client Error: " + err);
 	});
+	globalSocket.on('data', function (msg) {
+		console.log(msg);
+	});
 });
 
 server.on("connection", function() {
@@ -22,6 +25,9 @@ server.on('error', function (err) {
 	console.log( err );
 });
 
+server.on('data', function (msg) {
+	console.log(msg);
+});
 
 
 
