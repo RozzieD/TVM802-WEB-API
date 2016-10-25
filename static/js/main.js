@@ -13,3 +13,5 @@ $("#vacuum1On"		).click(function() { $.getJSON("/api/set?vacuum1=1", function(da
 $("#vacuum1Off"		).click(function() { $.getJSON("/api/set?vacuum1=0", function(data) { console.log(data); });});
 $("#vacuum2On"		).click(function() { $.getJSON("/api/set?vacuum2=1", function(data) { console.log(data); });});
 $("#vacuum2Off"		).click(function() { $.getJSON("/api/set?vacuum2=0", function(data) { console.log(data); });});
+$("#ledsOn"			).click(function() { $.getJSON("/api/set?leds=1", function(data) { console.log(data); });});
+$("#ledsOff"		).click(function() { $.getJSON("/api/set?leds=0", function(data) { console.log(data); });});

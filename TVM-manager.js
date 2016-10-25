@@ -3,16 +3,31 @@ var net = require('net');
 
 var settings = {
 	tvmPort 			: 701,
-//	tvmIP				: '192.168.0.8',
-	tvmIP				: '127.0.0.1',		// Emulator
+	tvmIP				: '192.168.0.8',
+	//tvmIP				: '127.0.0.1',		// Emulator
 	delayBeforePolling 	: 1000,
 	pollingInterval		: 20,
 	enablePolling		: false
 	
 }
 
+
+var state = {
+	"last_reply": "2016/01/01 00:00",
+	VacuumPump 	: 0,
+	Vacuum1 	: 0,
+	Vacuum2 	: 0,
+	Blowing1 	: 0,
+	Blowing2 	: 0,
+	Buzzer		: 0,
+	Prick		: 0,
+	Leds		: 0,
+	
+};
+
 var commands = {
 	poll 		: new Buffer([0x01, 0x00, 0x00, 0x00, 0xf4, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]),	
+	reqState	: new Buffer([0x00, 0x00, 0x00, 0x00]),
 	
 	BuzzerOn 	: new Buffer([0x14, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00]),
 	BuzzerOff	: new Buffer([0x15, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00]),
@@ -34,6 +49,9 @@ var commands = {
 
 	Vacuum2On	: new Buffer([0x14, 0x00, 0x00, 0x00, 0x00, 0x20, 0x00, 0x00]),
 	Vacuum2Off	: new Buffer([0x15, 0x00, 0x00, 0x00, 0x00, 0x20, 0x00, 0x00]),
+	
+	LedsOn		: new Buffer([0x14, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00]),
+	LedsOff		: new Buffer([0x15, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00])
 	
 	
 	
@@ -99,8 +117,8 @@ var beep = false;
 						setInterval(function(){ poll();},settings.pollingInterval);
 					}
 					
-					/*
-					setInterval(function(){ getState();},settings.pollingInterval);
+					
+					setInterval(function(){ getState();},settings.pollingInterval*10);
 					
 					/*
 					setInterval(function(){
@@ -163,21 +181,32 @@ var beep = false;
 			console.log("Invalid message");
 			return;
 		}
-		console.log(msg);
-		console.log(getBit(msg,62)); // 7
+		
+		if((msg[4] & 8) === 8){ state.VacuumPump = 1; } else { state.VacuumPump = 0; };
+		if((msg[4] & 4) === 4){ state.Vacuum1 = 1; } else { state.Vacuum1 = 0; };
+		if((msg[5] & 32) === 32){ state.Vacuum2 = 1; } else { state.Vacuum2 = 0; };
 
-		// Vacuum1 off
-		//00:00:00:00:  00:03:00:00:  f0:ff:ff:03:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00
+		if((msg[4] & 2) === 2){ state.Blowing1 = 1; } else { state.Blowing1 = 0; };
+		if((msg[5] & 16) === 16){ state.Blowing2 = 1; } else { state.Blowing2 = 0; };
 		
-		// Vacuum1 on
-		//00:00:00:00:  04:03:00:00:  f0:ff:ff:03:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00
-		/*
-		Check 5th byte for vacuum
+		if((msg[5] & 8) === 8){ state.Buzzer = 1; } else { state.Buzzer = 0; };
+		if((msg[5] & 64) === 64){ state.Prick = 1; } else { state.Prick = 0; };
+		
+		if((msg[8] & 4) === 4){ state.LimitTop = 1; } else { state.LimitTop = 0; };
+		if((msg[8] & 8) === 8){ state.LimitBottom = 1; } else { state.LimitBottom = 0; };
+		if((msg[8] & 2) === 2){ state.LimitLeft = 1; } else { state.LimitLeft = 0; };
+		if((msg[8] & 1) === 1){ state.LimitRight = 1; } else { state.LimitRight = 0; };
+		
+		if((msg[5] & 2) === 2){ state.Leds = 1; } else { state.Leds = 0; };
 		
 		
-		*/
+		//state.Vacuum1 = 1;
+		console.log(msg);
+		console.log(state);
 		
-		
+		// <Buffer 00 00 00 00 a0 01 00 00 f1 ff ff 03 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00>
+		// <Buffer 00 00 00 00 a0 03 00 00 f1 ff ff 03 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00>
+
 		
 		
 		/*
@@ -229,6 +258,9 @@ var beep = false;
 				case "vacuum2":
 					if(query[keys[0]] === '1'){ tvmClient.write(commands.Vacuum2On); } else { tvmClient.write(commands.Vacuum2Off); }
 					return 1;
+				case "leds":
+					if(query[keys[0]] === '1'){ tvmClient.write(commands.LedsOn); } else { tvmClient.write(commands.LedsOff); }
+					return 1;
 				default :
 					return -1;
 		}
@@ -246,5 +278,6 @@ module.exports = {
 			console.log('TVM connecting.');
 		});
 	},
-	processAPIRequest : processAPIRequest
+	processAPIRequest : processAPIRequest,
+	state : state
 };    

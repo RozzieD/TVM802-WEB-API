@@ -8,10 +8,6 @@ var config = {
 };
 
 
-var state = {
-	"last_reply": "2016/01/01 00:00",
-};
-
 // ####################### Web Server #######################
 	var server = express();
 	server.use(express.static(__dirname + '/static',{ maxAge: 100 ,etag: false })); 			// Static folder
@@ -19,7 +15,7 @@ var state = {
 	
 
 	server.get('/api/status', function (req, res) {
-		res.json(state);
+		res.json(tvmManager.state);
 	});
 	
 	// redirect home for now
