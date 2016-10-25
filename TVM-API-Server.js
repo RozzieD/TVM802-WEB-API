@@ -19,17 +19,16 @@ var state = {
 	server.get('/api/status', function (req, res) {
 		res.json(state);
 	});
+	
 	// redirect home for now
 	server.get('/', function (req, res) {
 		res.redirect('/api/status');
 	});
 	
 	server.get('/api/set', function (req, res) {
-		if (req.query.buzzer) {
-			console.log("Buzzer:"+req.query.buzzer);
-		}
-
-		var results = { 'result': 'OK' };
+		var result = tvmManager.processAPIRequest(req.query);
+	
+		var results = { 'result': result };
 		res.json(results);
 	});
 	
@@ -37,7 +36,7 @@ var state = {
 		var results = { 'result': 'OK' };
 		res.json(results);
 	});
-
+	
 // ####################### Main #######################
 	function main(){
 			server.listen(config.wwwPort, function () {
