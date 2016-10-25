@@ -1,5 +1,6 @@
 var express = require('express');
 var net = require('net');
+var path = require('path');
 var tvmManager = require("./TVM-manager");
 
 var config = {
@@ -13,6 +14,7 @@ var state = {
 
 // ####################### Web Server #######################
 	var server = express();
+	server.use(express.static(__dirname + '/static',{ maxAge: 100 ,etag: false })); 			// Static folder
 	
 	
 
@@ -22,7 +24,10 @@ var state = {
 	
 	// redirect home for now
 	server.get('/', function (req, res) {
-		res.redirect('/api/status');
+		//res.redirect('/api/status');
+		//res.sendFile('index.html');
+		//res.sendFile(path.join(__dirname + '/index.html'));
+		res.redirect('index.html')
 	});
 	
 	server.get('/api/set', function (req, res) {
@@ -32,10 +37,6 @@ var state = {
 		res.json(results);
 	});
 	
-	server.get('/api/home', function (req, res) {
-		var results = { 'result': 'OK' };
-		res.json(results);
-	});
 	
 // ####################### Main #######################
 	function main(){
