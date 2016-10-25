@@ -3,19 +3,19 @@ var net = require('net');
 
 var settings = {
 	tvmPort 			: 701,
-	tvmIP				: '192.168.0.8',
-//	tvmIP				: '127.0.0.1',		// Emulator
+//	tvmIP				: '192.168.0.8',
+	tvmIP				: '127.0.0.1',		// Emulator
 	delayBeforePolling 	: 1000,
-	pollingInterval		: 20
+	pollingInterval		: 20,
+	enablePolling		: false
 	
 }
 
 var commands = {
 	poll 		: new Buffer([0x01, 0x00, 0x00, 0x00, 0xf4, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]),	
-	reqState	: new Buffer([0x00, 0x00, 0x00, 0x00]),		
 	
-	BeeperOn 	: new Buffer([0x14, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00]),
-	BeeperOff	: new Buffer([0x15, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00]),
+	BuzzerOn 	: new Buffer([0x14, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00]),
+	BuzzerOff	: new Buffer([0x15, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00]),
 	
 	PrickOn 	: new Buffer([0x14, 0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00]),
 	PrickOff 	: new Buffer([0x15, 0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00]),
@@ -34,6 +34,11 @@ var commands = {
 
 	Vacuum2On	: new Buffer([0x14, 0x00, 0x00, 0x00, 0x00, 0x20, 0x00, 0x00]),
 	Vacuum2Off	: new Buffer([0x15, 0x00, 0x00, 0x00, 0x00, 0x20, 0x00, 0x00]),
+	
+	
+	
+	
+	
 	
 	/*
 	HighSpeed	, 0x new Buffer([0x14, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 
@@ -77,7 +82,7 @@ var beep = false;
 		console.log('TVM connected.');
 		
 		
-		tvmClient.write(new Buffer([ 0x5, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0]));
+		tvmClient.write(new Buffer([0x5, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0]));
 		tvmClient.write(new Buffer([0x15, 0x0, 0x0, 0x0, 0x8, 0x0, 0x0, 0x0]));	
 		tvmClient.write(new Buffer([0x14, 0x0, 0x0, 0x0, 0x0, 0x1, 0x0, 0x0]));
 		tvmClient.write(new Buffer([0x14, 0x0, 0x0, 0x0, 0x0, 0x2, 0x0, 0x0]));
@@ -90,7 +95,11 @@ var beep = false;
 		setTimeout(
 			function(){ 
 				
-					setInterval(function(){ poll();},settings.pollingInterval);
+					if(settings.enablePolling){
+						setInterval(function(){ poll();},settings.pollingInterval);
+					}
+					
+					/*
 					setInterval(function(){ getState();},settings.pollingInterval);
 					
 					/*
@@ -192,6 +201,40 @@ var beep = false;
 		return targetByte;		
 	}
 
+	function processAPIRequest(query){		
+		var keys = Object.keys(query);
+		if(keys.length > 1 || keys.length === 0){
+			return -1;
+		}
+		
+		switch (keys[0]){
+				case 'buzzer':
+					if(query[keys[0]] === '1'){ tvmClient.write(commands.BuzzerOn); } else { tvmClient.write(commands.BuzzerOff); }
+					return 1;
+				case "prick":
+					if(query[keys[0]] === '1'){ tvmClient.write(commands.PrickOn); } else { tvmClient.write(commands.PrickOff); }
+					return 1;
+				case "pump":
+					if(query[keys[0]] === '1'){ tvmClient.write(commands.PumpOn); } else { tvmClient.write(commands.PumpOff); }
+					return 1;
+				case "blowing1":
+					if(query[keys[0]] === '1'){ tvmClient.write(commands.Blowing1On); } else { tvmClient.write(commands.Blowing1Off); }
+					return 1;
+				case "blowing2":
+					if(query[keys[0]] === '1'){ tvmClient.write(commands.Blowing2On); } else { tvmClient.write(commands.Blowing2Off); }
+					return 1;
+				case "vacuum1":
+					if(query[keys[0]] === '1'){ tvmClient.write(commands.Vacuum1On); } else { tvmClient.write(commands.Vacuum1Off); }
+					return 1;
+				case "vacuum2":
+					if(query[keys[0]] === '1'){ tvmClient.write(commands.Vacuum2On); } else { tvmClient.write(commands.Vacuum2Off); }
+					return 1;
+				default :
+					return -1;
+		}
+		return -1;
+	}
+
 
 
 
@@ -202,5 +245,6 @@ module.exports = {
 		tvmClient.connect(settings.tvmPort,settings.tvmIP, function() {
 			console.log('TVM connecting.');
 		});
-	}
+	},
+	processAPIRequest : processAPIRequest
 };    

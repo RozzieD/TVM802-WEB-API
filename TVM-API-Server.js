@@ -1,5 +1,6 @@
 var express = require('express');
 var net = require('net');
+var path = require('path');
 var tvmManager = require("./TVM-manager");
 
 var config = {
@@ -13,31 +14,30 @@ var state = {
 
 // ####################### Web Server #######################
 	var server = express();
+	server.use(express.static(__dirname + '/static',{ maxAge: 100 ,etag: false })); 			// Static folder
 	
 	
 
 	server.get('/api/status', function (req, res) {
 		res.json(state);
 	});
+	
 	// redirect home for now
 	server.get('/', function (req, res) {
-		res.redirect('/api/status');
+		//res.redirect('/api/status');
+		//res.sendFile('index.html');
+		//res.sendFile(path.join(__dirname + '/index.html'));
+		res.redirect('index.html')
 	});
 	
 	server.get('/api/set', function (req, res) {
-		if (req.query.buzzer) {
-			console.log("Buzzer:"+req.query.buzzer);
-		}
-
-		var results = { 'result': 'OK' };
+		var result = tvmManager.processAPIRequest(req.query);
+	
+		var results = { 'result': result };
 		res.json(results);
 	});
 	
-	server.get('/api/home', function (req, res) {
-		var results = { 'result': 'OK' };
-		res.json(results);
-	});
-
+	
 // ####################### Main #######################
 	function main(){
 			server.listen(config.wwwPort, function () {
