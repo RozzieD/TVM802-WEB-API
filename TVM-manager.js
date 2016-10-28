@@ -22,7 +22,13 @@ var state = {
 	Buzzer		: 0,
 	Prick		: 0,
 	Leds		: 0,
-	
+	Position	: {
+		X 		: 0,
+		Y 		: 0,
+		A1 		: 0,
+		A2 		: 0,
+		Nozzle 	: 0
+	}	
 };
 
 var commands = {
@@ -200,6 +206,28 @@ var beep = false;
 		if((msg[5] & 2) === 2){ state.Leds = 1; } else { state.Leds = 0; };
 		
 		
+		var msgStr = msg.toString('hex');
+		
+		state.Position.X 		= convertPositionToMM(msgStr.substring(40, 48),32808);
+		state.Position.Y 		= convertPositionToMM(msgStr.substring(56, 64),32808);
+		state.Position.A1 		= convertPositionToMM(msgStr.substring(48, 56),4444.44);
+		state.Position.A2 		= convertPositionToMM(msgStr.substring(64, 72),4444.44);
+		state.Position.Nozzle 	= convertPositionToMM(msgStr.substring(32, 40),32808);
+		
+		
+		
+		//														Nozzle			X			A1			  y				A2
+		//00 00 00 00  00 03 00 00  f5 ff ff 03  00 00 00 00  00 00 00 00  c0 73 a3 00  30 63 03 00  e0 f6 af 00  98 b1 01 00  00 00 00 00  00 00 00 00>
+		//00:00:00:00: 40:03:00:00: f1:ff:ff:03: 00:00:00:00: 00:00:00:00: c0:73:a3:00: 00:00:00:00: 00:00:00:00: 00:00:00:00: 00:00:00:00: 00:00:00:00
+		//00:00:00:00: 40:03:00:00: f1:ff:ff:03: 00:00:00:00: 00:00:00:00: c0:73:a3:00: 00:00:00:00: 40:01:05:00: 00:00:00:00: 00:00:00:00: 00:00:00:00
+		
+		/*
+		hex 40:01:05:00
+		int 4194565 / 32808.00
+		
+		*/
+		
+		
 		//state.Vacuum1 = 1;
 		console.log(msg);
 		console.log(state);
@@ -221,6 +249,14 @@ var beep = false;
 		*/
 		
 		
+	}
+	
+	function convertPositionToMM(value,stepPerMM){		
+		var reversed = value.substring(6,8) + value.substring(4,6) + value.substring(2,4) + value.substring(0,2);
+		
+		//var str = '0xA373C0';
+		//return parseFloat(0xA373C0,16); // working
+		return parseInt(reversed,16) / stepPerMM;
 	}
 	
 	function getBit(msg,index){
