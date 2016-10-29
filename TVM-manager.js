@@ -7,8 +7,15 @@ var settings = {
 	//tvmIP				: '127.0.0.1',		// Emulator
 	delayBeforePolling 	: 1000,
 	pollingInterval		: 20,
-	enablePolling		: false
-	
+	enablePolling		: false,
+	stepsPerMM			:{
+		X		:	32808,
+		Y		:	32808,
+		A1		:	4444.44,
+		A2		:	4444.44,
+		Nozzle	:	32808
+		
+	}
 }
 
 
@@ -25,6 +32,13 @@ var state = {
 	Prick		: 0,
 	Leds		: 0,
 	Position	: {
+		X 		: 0,
+		Y 		: 0,
+		A1 		: 0,
+		A2 		: 0,
+		Nozzle 	: 0
+	},
+	PositionRaw	: {
 		X 		: 0,
 		Y 		: 0,
 		A1 		: 0,
@@ -213,12 +227,19 @@ var beep = false;
 		
 		var msgStr = msg.toString('hex');
 		
-		state.Position.X 		= convertPositionToMM(msgStr.substring(40, 48),32808);
-		state.Position.Y 		= convertPositionToMM(msgStr.substring(56, 64),32808);
-		state.Position.A1 		= convertPositionToMM(msgStr.substring(48, 56),4444.44);
-		state.Position.A2 		= convertPositionToMM(msgStr.substring(64, 72),4444.44);
-		state.Position.Nozzle 	= convertPositionToMM(msgStr.substring(32, 40),32808);
 		
+
+		state.PositionRaw.X 		= parseInt(BuildNumber(msgStr.substring(40, 48)),16);
+		state.PositionRaw.Y 		= parseInt(BuildNumber(msgStr.substring(56, 64)),16);
+		state.PositionRaw.A1 		= parseInt(BuildNumber(msgStr.substring(48, 56)),16);
+		state.PositionRaw.A2 		= parseInt(BuildNumber(msgStr.substring(64, 72)),16);
+		state.PositionRaw.Nozzle 	= parseInt(BuildNumber(msgStr.substring(32, 40)),16);
+		
+		state.Position.X 		= state.PositionRaw.X /  settings.stepsPerMM.X;
+		state.Position.Y 		= state.PositionRaw.Y /  settings.stepsPerMM.Y;
+		state.Position.A1 		= state.PositionRaw.A1 / settings.stepsPerMM.A1;
+		state.Position.A2 		= state.PositionRaw.A2 / settings.stepsPerMM.A2;
+		state.Position.Nozzle 	= state.PositionRaw.Nozzle / settings.stepsPerMM.Nozzle;
 		
 		
 		if((msg[5] & 1) === 1 && (msg[4] & 128) !== 128) {state.SpeedMode = "Slow";};
@@ -226,52 +247,9 @@ var beep = false;
 		if((msg[5] & 1) !== 1 && (msg[4] & 128) === 128) {state.SpeedMode = "Fast";}
 		
 		
-		
-		// No pressure on 2
-		//<Buffer 00 00 00 00 88 27 00 00 f5 ff ff 03 00 00 00 00 00 00 00 00 c0 73 a3 00 00 00 00 00 e0 f6 af 00 00 00 00 00 00 00 00 00 00 00 00 00>
-		//<Buffer 00 00 00 00 88 27 00 00 f5 ff ef 03 00 00 00 00 00 00 00 00 c0 73 a3 00 00 00 00 00 e0 f6 af 00 00 00 00 00 00 00 00 00 00 00 00 00>
-		
-		
-		// No pressure no pump vacuum 1 on
-		//                    vac1 
-		//<Buffer 00 00 00 00 84 02 00 00 f5 ff ff 03 00 00 00 00 00 00 00 00 c0 73 a3 00 00 00 00 00 e0 f6 af 00 00 00 00 00 00 00 00 00 00 00 00 00>
-		
-		// Pressure ,pump , vacuum 1 on
-		//					  vac1+pump
-		//<Buffer 00 00 00 00 8c 07 00 00 e5 ff ff 03 00 00 00 00 00 00 00 00 c0 73 a3 00 00 00 00 00 e0 f6 af 00 00 00 00 00 00 00 00 00 00 00 00 00>
-		
-		//														Nozzle			X			A1			  y				A2
-		//00 00 00 00  00 03 00 00  f5 ff ff 03  00 00 00 00  00 00 00 00  c0 73 a3 00  30 63 03 00  e0 f6 af 00  98 b1 01 00  00 00 00 00  00 00 00 00>
-		//00:00:00:00: 40:03:00:00: f1:ff:ff:03: 00:00:00:00: 00:00:00:00: c0:73:a3:00: 00:00:00:00: 00:00:00:00: 00:00:00:00: 00:00:00:00: 00:00:00:00
-		//00:00:00:00: 40:03:00:00: f1:ff:ff:03: 00:00:00:00: 00:00:00:00: c0:73:a3:00: 00:00:00:00: 40:01:05:00: 00:00:00:00: 00:00:00:00: 00:00:00:00
-		
-		/*
-		hex 40:01:05:00
-		int 4194565 / 32808.00
-		
-		*/
-		
-		
-		//state.Vacuum1 = 1;
+
 		console.log(msg);
 		console.log(state);
-		
-		// <Buffer 00 00 00 00 a0 01 00 00 f1 ff ff 03 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00>
-		// <Buffer 00 00 00 00 a0 03 00 00 f1 ff ff 03 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00>
-
-		
-		
-		/*
-
-		vac1 = CheckBit(RecvBuffer, 62);
-		vac2 = CheckBit(RecvBuffer, 51);
-		blow1 = CheckBit(RecvBuffer, 63);
-		blow2 = CheckBit(RecvBuffer, 52);
-		pres1 = CheckBit(RecvBuffer, 92);
-		pres2 = CheckBit(RecvBuffer, 76);
-		strip = CheckBit(RecvBuffer, 319);
-		*/
-		
 		
 	}
 	
@@ -344,12 +322,8 @@ var beep = false;
 		return result;
 	}
 	
-	function convertPositionToMM(value,stepPerMM){		
-		var reversed = value.substring(6,8) + value.substring(4,6) + value.substring(2,4) + value.substring(0,2);
-		
-		//var str = '0xA373C0';
-		//return parseFloat(0xA373C0,16); // working
-		return parseInt(reversed,16) / stepPerMM;
+	function BuildNumber(value){
+		return value.substring(6,8) + value.substring(4,6) + value.substring(2,4) + value.substring(0,2);		
 	}
 	
 	function getBit(msg,index){
