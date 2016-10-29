@@ -19,6 +19,8 @@ var state = {
 	Vacuum2 	: 0,
 	Blowing1 	: 0,
 	Blowing2 	: 0,
+	Pressure1	: 0,
+	Pressure2	: 0,
 	Buzzer		: 0,
 	Prick		: 0,
 	Leds		: 0,
@@ -28,7 +30,8 @@ var state = {
 		A1 		: 0,
 		A2 		: 0,
 		Nozzle 	: 0
-	}	
+	},
+	SpeedMode	: "Slow"	
 };
 
 var commands = {
@@ -205,6 +208,8 @@ var beep = false;
 		
 		if((msg[5] & 2) === 2){ state.Leds = 1; } else { state.Leds = 0; };
 		
+		if((msg[8] & 16) === 16) { state.Pressure1 = 0; } else { state.Pressure1 = 1; };
+		if((msg[10] & 16) === 16){ state.Pressure2 = 0; } else { state.Pressure2 = 1; };
 		
 		var msgStr = msg.toString('hex');
 		
@@ -215,6 +220,25 @@ var beep = false;
 		state.Position.Nozzle 	= convertPositionToMM(msgStr.substring(32, 40),32808);
 		
 		
+		
+		if((msg[5] & 1) === 1 && (msg[4] & 128) !== 128) {state.SpeedMode = "Slow";};
+		// Slow bit is not always setting
+		if((msg[5] & 1) !== 1 && (msg[4] & 128) === 128) {state.SpeedMode = "Fast";}
+		
+		
+		
+		// No pressure on 2
+		//<Buffer 00 00 00 00 88 27 00 00 f5 ff ff 03 00 00 00 00 00 00 00 00 c0 73 a3 00 00 00 00 00 e0 f6 af 00 00 00 00 00 00 00 00 00 00 00 00 00>
+		//<Buffer 00 00 00 00 88 27 00 00 f5 ff ef 03 00 00 00 00 00 00 00 00 c0 73 a3 00 00 00 00 00 e0 f6 af 00 00 00 00 00 00 00 00 00 00 00 00 00>
+		
+		
+		// No pressure no pump vacuum 1 on
+		//                    vac1 
+		//<Buffer 00 00 00 00 84 02 00 00 f5 ff ff 03 00 00 00 00 00 00 00 00 c0 73 a3 00 00 00 00 00 e0 f6 af 00 00 00 00 00 00 00 00 00 00 00 00 00>
+		
+		// Pressure ,pump , vacuum 1 on
+		//					  vac1+pump
+		//<Buffer 00 00 00 00 8c 07 00 00 e5 ff ff 03 00 00 00 00 00 00 00 00 c0 73 a3 00 00 00 00 00 e0 f6 af 00 00 00 00 00 00 00 00 00 00 00 00 00>
 		
 		//														Nozzle			X			A1			  y				A2
 		//00 00 00 00  00 03 00 00  f5 ff ff 03  00 00 00 00  00 00 00 00  c0 73 a3 00  30 63 03 00  e0 f6 af 00  98 b1 01 00  00 00 00 00  00 00 00 00>
@@ -249,6 +273,75 @@ var beep = false;
 		*/
 		
 		
+	}
+	
+	function convertNozzlePositionToMM(value){
+		/*
+		//getting nozzle position
+			int nozzle = BuildNumber(RecvBuffer + 16, 4);
+			
+			
+			double slope = 1;
+			int step = 78000;
+			double offset = 0;
+			int nozzle_abs = abs(nozzle);
+			//linear interpolation of nozzle position
+			if (nozzle_abs >= 0 && nozzle_abs <= 78000) {
+				slope = (5.13 - 0) / step;
+				offset = 0;
+			}
+			else if (nozzle_abs > 78000 && nozzle_abs <= 156000) {
+				slope = (9.78 - 5.13) / step;
+				offset = 0.48;
+			}
+			else if (nozzle_abs > 156000 && nozzle_abs <= 234000) {
+				slope = (13.51 - 9.78) / step;
+				offset = 2.32;
+			}
+			else {
+				slope = (15.99 - 13.51) / step;
+				offset = 6.07;
+			}
+			
+			
+			if (nozzle < 0)
+				offset = -offset;
+			N_pos = nozzle * slope + offset;
+			N_pos = round(N_pos * 100) / 100;
+
+		*/
+		var result 	= 0;
+		var nozzle 	= parseInt((value.substring(6,8) + value.substring(4,6) + value.substring(2,4) + value.substring(0,2)),16);
+		var slope	= 1.00;
+		var step = 78000;
+		var offset 	= 0.00;
+		
+		//linear interpolation of nozzle position
+		if (nozzle >= 0 && nozzle <= 78000) {
+			slope = (5.13 - 0) / step;
+			offset = 0;
+		}
+		else if (nozzle > 78000 && nozzle <= 156000) {
+			slope = (9.78 - 5.13) / step;
+			offset = 0.48;
+		}
+		else if (nozzle > 156000 && nozzle <= 234000) {
+			slope = (13.51 - 9.78) / step;
+			offset = 2.32;
+		}
+		else {
+			slope = (15.99 - 13.51) / step;
+			offset = 6.07;
+		}
+		
+		if (nozzle < 0){
+			offset = -offset;
+		}
+		
+		result = nozzle * slope + offset;
+		result = Math.round(result * 100) / 100;
+		
+		return result;
 	}
 	
 	function convertPositionToMM(value,stepPerMM){		
