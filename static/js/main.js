@@ -19,4 +19,5 @@ $("#ledsOff"		).click(function() { $.getJSON("/api/set?leds=0", function(data) {
 
 
 
-$("#xPlus"			).click(function() { $.getJSON("/api/move", function(data) { console.log(data); });});
+$("#yPlus"			).click(function() { $.getJSON("/api/move?StepY=1", function(data) { console.log(data); });});
+$("#yMinus"			).click(function() { $.getJSON("/api/move?StepX=1", function(data) { console.log(data); });});
