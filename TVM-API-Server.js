@@ -33,6 +33,13 @@ var config = {
 		res.json(results);
 	});
 	
+	server.get('/api/move', function (req, res) {
+		var result = tvmManager.processMoveRequest(req.query);
+	
+		var results = { 'result': result };
+		res.json(results);
+	});
+	
 	
 // ####################### Main #######################
 	function main(){
