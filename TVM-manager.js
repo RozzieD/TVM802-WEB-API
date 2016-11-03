@@ -352,7 +352,18 @@ var beep = false;
 				var keys = Object.keys(query);
 		if(keys.length > 1 || keys.length === 0){
 			return -1;
+		}		
+		
+		
+		var x = state.position.X;
+		if(keys.indexOf("X") > -1 ){
+			if(state.position.X !== query[keys["X"]]){
+				// Generate X position buffer
+			}
 		}
+		
+		// /API/move? X=10.00& Y=10.00& Z=10.00& A1=10.00& A2=10.00
+
 		
 		switch (keys[0]){
 				case 'StepY':
