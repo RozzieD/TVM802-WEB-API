@@ -15,7 +15,9 @@ var settings = {
 		A2		:	4444.44,
 		Nozzle	:	32808
 		
-	}
+	},
+	// Warnings
+	buzzOnLimit : true
 }
 
 
@@ -44,6 +46,12 @@ var state = {
 		A1 		: 0,
 		A2 		: 0,
 		Nozzle 	: 0
+	},
+	Limit : {
+		Top 	: 0,
+		Bottom 	: 0,
+		Left 	: 0,
+		Right 	: 0
 	},
 	SpeedMode	: "Slow"	
 };
@@ -178,10 +186,10 @@ var beep = false;
 		if((msg[5] & 8) === 8){ state.Buzzer = 1; } else { state.Buzzer = 0; };
 		if((msg[5] & 64) === 64){ state.Prick = 1; } else { state.Prick = 0; };
 		
-		if((msg[8] & 4) === 4){ state.LimitTop = 1; } else { state.LimitTop = 0; };
-		if((msg[8] & 8) === 8){ state.LimitBottom = 1; } else { state.LimitBottom = 0; };
-		if((msg[8] & 2) === 2){ state.LimitLeft = 1; } else { state.LimitLeft = 0; };
-		if((msg[8] & 1) === 1){ state.LimitRight = 1; } else { state.LimitRight = 0; };
+		if((msg[8] & 4) === 4){ state.Limit.Top = 1; } else { state.Limit.Top = 0; };
+		if((msg[8] & 8) === 8){ state.Limit.Bottom = 1; } else { state.Limit.Bottom = 0; };
+		if((msg[8] & 2) === 2){ state.Limit.Left = 1; } else { state.Limit.Left = 0; };
+		if((msg[8] & 1) === 1){ state.Limit.Right = 1; } else { state.Limit.Right = 0; };
 		
 		if((msg[5] & 2) === 2){ state.Leds = 1; } else { state.Leds = 0; };
 		
@@ -209,11 +217,20 @@ var beep = false;
 		// Slow bit is not always setting
 		if((msg[5] & 1) !== 1 && (msg[4] & 128) === 128) {state.SpeedMode = "Fast";}
 		
-		
+		if(CheckLimitsHit() && settings.buzzOnLimit) {
+			tvmClient.write(commands.BuzzerOn);			
+		} else
+		{
+			tvmClient.write(commands.BuzzerOff);
+		}
 
 		//console.log(msg);
 		//console.log(state);
 		
+	}
+	
+	function CheckLimitsHit(){
+		return state.Limit.Top + state.Limit.Bottom + state.Limit.Left + state.Limit.Right > 0; 
 	}
 	
 
