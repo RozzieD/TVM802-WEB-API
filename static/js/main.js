@@ -19,5 +19,9 @@ $("#ledsOff"		).click(function() { $.getJSON("/api/set?leds=0", function(data) {
 
 
 
-$("#yPlus"			).click(function() { $.getJSON("/api/move?StepY=1", function(data) { console.log(data); });});
-$("#yMinus"			).click(function() { $.getJSON("/api/move?StepX=1", function(data) { console.log(data); });});
+$("#yPlus"			).click(function() { $.getJSON("/api/move?StepY=10", function(data) { console.log(data); });});
+$("#yMinus"			).click(function() { $.getJSON("/api/move?StepY=-10", function(data) { console.log(data); });});
+$("#xPlus"			).click(function() { $.getJSON("/api/move?StepX=10", function(data) { console.log(data); });});
+$("#xMinus"			).click(function() { $.getJSON("/api/move?StepX=-10", function(data) { console.log(data); });});
+$("#stopAll"		).click(function() { $.getJSON("/api/move?StopAll=1", function(data) { console.log(data); });});
+$("#home"			).click(function() { $.getJSON("/api/home", function(data) { console.log(data); });});

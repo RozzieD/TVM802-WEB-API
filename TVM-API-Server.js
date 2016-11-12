@@ -33,6 +33,14 @@ var config = {
 		res.json(results);
 	});
 	
+	server.get('/api/home', function (req, res) {
+		var result = tvmManager.processHomeReq();
+	
+		var results = { 'result': result };
+		res.json(results);
+	});
+	
+	
 	server.get('/api/move', function (req, res) {
 		var result = tvmManager.processMoveRequest(req.query);
 	
