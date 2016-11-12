@@ -13,16 +13,14 @@ var settings = {
 		Y		:	32808,
 		A1		:	4444.44,
 		A2		:	4444.44,
-		Nozzle	:	32808
-		
+		Nozzle	:	32808		
 	},
-	// Warnings
-	buzzOnLimit : true
+	buzzerOnLimit 	: true
 }
 
 
 var state = {
-	"last_reply": "2016/01/01 00:00",
+	last_reply	: "2016/01/01 00:00",
 	VacuumPump 	: 0,
 	Vacuum1 	: 0,
 	Vacuum2 	: 0,
@@ -170,6 +168,7 @@ var beep = false;
 		}
 	}
 	
+	
 	function updateState(msg){
 		if(msg.length !== 44){
 			console.log("Invalid message");
@@ -190,6 +189,12 @@ var beep = false;
 		if((msg[8] & 8) === 8){ state.Limit.Bottom = 1; } else { state.Limit.Bottom = 0; };
 		if((msg[8] & 2) === 2){ state.Limit.Left = 1; } else { state.Limit.Left = 0; };
 		if((msg[8] & 1) === 1){ state.Limit.Right = 1; } else { state.Limit.Right = 0; };
+		
+		state.Limit = { Top : 0, Bottom : 0 , Left : 0 , Right : 0 };
+		if((msg[8] & 4) === 4){ state.Limit.Top = 1; }
+		if((msg[8] & 8) === 8){ state.Limit.Bottom = 1; }
+		if((msg[8] & 2) === 2){ state.Limit.Left = 1; }
+		if((msg[8] & 1) === 1){ state.Limit.Right = 1; } 
 		
 		if((msg[5] & 2) === 2){ state.Leds = 1; } else { state.Leds = 0; };
 		
@@ -217,20 +222,29 @@ var beep = false;
 		// Slow bit is not always setting
 		if((msg[5] & 1) !== 1 && (msg[4] & 128) === 128) {state.SpeedMode = "Fast";}
 		
-		if(CheckLimitsHit() && settings.buzzOnLimit) {
-			tvmClient.write(commands.BuzzerOn);			
-		} else
-		{
-			tvmClient.write(commands.BuzzerOff);
+		var limitState = LimitsTriggered();
+
+		if(settings.buzzerOnLimit){
+			if(limitState){
+				if(state.Buzzer === 0){
+					console.log("Buzzzzzzzz");					
+				}
+			} else {
+				if(state.Buzzer === 1){
+					console.log("BuzzOff");			
+				}
+			}
+			
 		}
+		
 
 		//console.log(msg);
 		//console.log(state);
 		
 	}
 	
-	function CheckLimitsHit(){
-		return state.Limit.Top + state.Limit.Bottom + state.Limit.Left + state.Limit.Right > 0; 
+	function LimitsTriggered(){
+		return state.Limit.Top + state.Limit.Bottom + state.Limit.Left + state.Limit.Right > 0;
 	}
 	
 
@@ -347,7 +361,7 @@ var beep = false;
 	}
 
 	function Move(msg){
-		if(state.LimitTop + state.LimitBottom + state.LimitLeft + state.LimitRight === 0){
+		if(!LimitsTriggered){
 			//console.log(state.Position.Y);
 			
 			tvmClient.write(new Buffer([0x06, 0x00, 0x04, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0xa0, 0x0f, 0x00, 0x00, 0xb8, 0x0b, 0x00, 0x00, 0x88, 0x13, 0x00, 0x00, 0xa0, 0x0f, 0x00, 0x00, 0x88, 0x13, 0x00, 0x00, 0xa0, 0x0f, 0x00, 0x00]));
